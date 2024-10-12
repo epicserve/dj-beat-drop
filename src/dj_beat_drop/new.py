@@ -8,6 +8,14 @@ from io import BytesIO
 import requests
 
 
+def green(text):
+    print(f"\033[92m{text}\033[0m")
+
+
+def red(text):
+    print(f"\033[91m{text}\033[0m")
+
+
 def get_latest_django_version():
     response = requests.get("https://pypi.org/pypi/Django/json")
     if response.status_code == 200:
@@ -96,6 +104,11 @@ def handle_new(name, overwrite):
 
         shutil.rmtree("/tmp/django_template")
 
-        print(f"Created a new Django project with name: {name}")
+        green(f"New Django project created at {project_dir}.\n")
+        green("To get started, run the following commands:\n")
+        print(f"cd {name}")
+        print(f"uv add django~={django_version}")
+        print("uv run manage.py migrate")
+        print("uv run manage.py runserver")
     else:
-        print("Failed to download the Django template.")
+        red("Failed to download the Django template.")
