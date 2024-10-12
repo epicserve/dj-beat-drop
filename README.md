@@ -34,4 +34,9 @@ pip install dj-beat-drop
 
 ```sh
 beatdrop new example_project
+cd example_project
+uv init
+uv add django
+uv run manage.py migrate
+uv run manage.py runserver
 ```
