@@ -1,0 +1,22 @@
+[project]
+name = "dj-beat-drop"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "django>=5.1a0",
+    "requests>=2.32.3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "ruff>=0.6.9",
+]
+
+[project.scripts]
+beatdrop = "dj_beat_drop.main_cli:main"

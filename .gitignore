@@ -1,3 +1,6 @@
+# Test project directory
+example_project/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
