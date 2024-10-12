@@ -33,6 +33,7 @@ pip install dj-beat-drop
 ## Usage
 
 ```sh
+# If you just installed dj-beat-drop, then reload your shell to make the command available.
 beatdrop new example_project
 cd example_project
 uv init
