@@ -20,7 +20,8 @@ additional features and improvements.
 
 - **LTS Version**: Add an option so you can use the latest LTS version of Django instead of the latest release default.
 - **Environment Variables**: Add support for environment variables to configure the project.
-- **Tests**: Add tests to ensure the utility works as expected. 
+- **Tests**: Add tests to ensure the utility works as expected.
+- **Third-Party Templates**: Add support for using a third-party template.
 - **Polish**: Add lots of polish inspired by `laravel` CLI.
 - **Additional Subcommands**: Introduce more subcommands to enhance functionality.
 - **Official Django Project**: Aim to have this utility included as an official Django project, potentially renaming the 
