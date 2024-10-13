@@ -6,6 +6,7 @@ import zipfile
 from io import BytesIO
 
 import requests
+from InquirerPy import inquirer
 
 
 def green(text):
@@ -73,7 +74,9 @@ def handle_new(name, overwrite):
         shutil.rmtree(project_dir)
 
     response = requests.get(template_url)
-    if response.status_code == 200:
+    if response.status_code != 200:
+        red("Failed to download the Django template.")
+    else:
         with zipfile.ZipFile(BytesIO(response.content)) as zip_ref:
             zip_ref.extractall("/tmp/django_template")
 
@@ -104,11 +107,17 @@ def handle_new(name, overwrite):
 
         shutil.rmtree("/tmp/django_template")
 
+        initialize_uv = inquirer.confirm(message="Initialize your project with UV?", default=True).execute()
+        if initialize_uv is True:
+            os.chdir(project_dir)
+            os.system("uv init")
+            os.system("rm hello.py")
+            os.system(f"uv add django~='{docs_version}'")
+            os.system("uv run manage.py migrate")
+
         green(f"New Django project created at {project_dir}.\n")
-        green("To get started, run the following commands:\n")
-        print(f"cd {name}")
-        print(f"uv add django~={django_version}")
-        print("uv run manage.py migrate")
-        print("uv run manage.py runserver")
-    else:
-        red("Failed to download the Django template.")
+
+        if initialize_uv is True:
+            green("To start Django's run server:\n")
+            print(f"cd {name}")
+            print("uv run manage.py runserver")
