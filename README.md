@@ -37,9 +37,4 @@ pip install dj-beat-drop
 ```sh
 # If you just installed dj-beat-drop, then reload your shell to make the command available.
 beatdrop new example_project
-cd example_project
-uv init
-uv add django
-uv run manage.py migrate
-uv run manage.py runserver
 ```
