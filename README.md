@@ -23,8 +23,8 @@ additional features and improvements.
 - **Additional Subcommands**: Introduce more subcommands to enhance functionality.
 - **Official Django Project**: Aim to have this utility included as an official Django project, potentially renaming the 
   command to `django` for easier usage (e.g., `django new`).
-- **`pyproject.toml` Integration**: Set up new Django projects with a `pyproject.toml` file that can be used by `uv` to
-  run the project.
+- ~~**`pyproject.toml` Integration**: Set up new Django projects with a `pyproject.toml` file that can be used by `uv` to
+  run the project.~~
 
 ## Installation
 
