@@ -12,6 +12,7 @@ def main():
     new_parser.add_argument(
         "name",
         type=str,
+        nargs="?",
         help="Project name (e.g. 'example_project' or 'example-project').",
     )
     new_parser.add_argument(

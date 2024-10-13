@@ -2,40 +2,10 @@ import os
 import re
 import secrets
 import shutil
-import zipfile
-from io import BytesIO
 
-import requests
 from InquirerPy import inquirer
 
-
-def green(text):
-    print(f"\033[92m{text}\033[0m")
-
-
-def red(text):
-    print(f"\033[91m{text}\033[0m")
-
-
-def get_latest_django_version():
-    response = requests.get("https://pypi.org/pypi/Django/json")
-    if response.status_code == 200:
-        data = response.json()
-        return data["info"]["version"]
-    else:
-        raise Exception("Failed to fetch the latest Django version")
-
-
-def get_version(version):
-    rtn = ".".join(version)
-    mapping = {"alpha": "a", "beta": "b", "rc": "rc"}
-    for key in mapping:
-        if key in version:
-            key_index = version.index(key)
-            first_part = ".".join(version[: key_index - 1])
-            return f"{first_part}{mapping[key]}{version[key_index + 1]}"
-    print(rtn)
-    return rtn
+from dj_beat_drop.utils import green, red, get_latest_django_version
 
 
 def get_secret_key():
@@ -46,78 +16,83 @@ def get_secret_key():
     return "".join(secrets.choice(chars) for i in range(50))
 
 
-def handle_new(name, overwrite):
-    django_version = get_latest_django_version()
-    docs_version = ".".join(django_version.split(".")[0:2])
-    template_url = (
-        f"https://github.com/django/django/archive/refs/tags/{django_version}.zip"
-    )
-    template_dir = (
-        f"/tmp/django_template/django-{django_version}/django/conf/project_template"
-    )
-    project_dir = os.path.join(os.getcwd(), name)
+def rename_template_files(project_dir):
+    # Rename .py-tpl files to .py
+    for root, _, files in os.walk(project_dir):
+        for file in files:
+            if file.endswith(".py-tpl"):
+                old_file = os.path.join(root, file)
+                new_file = os.path.join(root, file[:-4])
+                os.rename(old_file, new_file)
 
-    if os.path.exists(template_dir):
-        shutil.rmtree(template_dir)
+
+def replace_variables(project_dir, context: dict[str, str]):
+    for root, _, files in os.walk(project_dir):
+        for file in files:
+            file_path = os.path.join(root, file)
+            with open(file_path, "r") as f:
+                content = f.read()
+            for variable, value in context.items():
+                content = content.replace(f"{{{{ {variable} }}}}", value)
+            with open(file_path, "w") as f:
+                f.write(content)
+
+
+def handle_new(name, overwrite):
+    if name is None:
+        name = inquirer.text("Project name:").execute()
+
+    if re.match(r'^[-a-z_]$', name) is None:
+        red("Invalid project name. Please use only lowercase letters, hyphens, and underscores.")
+        return
+
+    django_version, minor_version = get_latest_django_version()
+    project_dir = os.path.join(os.getcwd(), name)
+    template_dir_src = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "templates", minor_version
+    )
 
     if os.path.exists(project_dir):
         if overwrite is False:
-            overwrite_response = input(
-                f"The directory '{name}' already exists. Do you want to overwrite it? (yes/no): "
-            )
-            if (
-                overwrite_response.lower() != "yes"
-                and overwrite_response.lower() != "y"
-            ):
-                print("Operation cancelled.")
+            overwrite_response = inquirer.confirm(
+                message=f"The directory '{name}' already exists. Do you want to overwrite it?",
+                default=True,
+            ).execute()
+            if overwrite_response is False:
+                red("Operation cancelled.")
                 return
         shutil.rmtree(project_dir)
 
-    response = requests.get(template_url)
-    if response.status_code != 200:
-        red("Failed to download the Django template.")
-    else:
-        with zipfile.ZipFile(BytesIO(response.content)) as zip_ref:
-            zip_ref.extractall("/tmp/django_template")
+    initialize_uv = inquirer.confirm(
+        message="Initialize your project with UV?", default=True
+    ).execute()
 
-        config_dir = os.path.join(template_dir, "config")
-        os.rename(os.path.join(template_dir, "project_name"), config_dir)
-        shutil.copytree(template_dir, project_dir)
+    shutil.copytree(template_dir_src, project_dir)
+    os.rename(
+        os.path.join(project_dir, "project_name"), os.path.join(project_dir, "config")
+    )
 
-        # Rename .py-tpl files to .py
-        for root, _, files in os.walk(project_dir):
-            for file in files:
-                if file.endswith(".py-tpl"):
-                    old_file = os.path.join(root, file)
-                    new_file = os.path.join(root, file[:-4])
-                    os.rename(old_file, new_file)
+    rename_template_files(project_dir)
+    replace_variables(
+        project_dir,
+        {
+            "project_name": "config",
+            "django_version": django_version,
+            "docs_version": minor_version,
+            "secret_key": get_secret_key(),
+        },
+    )
 
-        # Replace variables with values
-        for root, _, files in os.walk(project_dir):
-            for file in files:
-                file_path = os.path.join(root, file)
-                with open(file_path, "r") as f:
-                    content = f.read()
-                content = content.replace("{{ project_name }}", "config")
-                content = content.replace("{{ django_version }}", django_version)
-                content = content.replace("{{ docs_version }}", docs_version)
-                content = content.replace("{{ secret_key }}", get_secret_key())
-                with open(file_path, "w") as f:
-                    f.write(content)
+    if initialize_uv is True:
+        os.chdir(project_dir)
+        os.system("uv init")
+        os.system("rm hello.py")
+        os.system(f"uv add django~='{minor_version}'")
+        os.system("uv run manage.py migrate")
 
-        shutil.rmtree("/tmp/django_template")
+    green(f"New Django project created.\n")
 
-        initialize_uv = inquirer.confirm(message="Initialize your project with UV?", default=True).execute()
-        if initialize_uv is True:
-            os.chdir(project_dir)
-            os.system("uv init")
-            os.system("rm hello.py")
-            os.system(f"uv add django~='{docs_version}'")
-            os.system("uv run manage.py migrate")
-
-        green(f"New Django project created at {project_dir}.\n")
-
-        if initialize_uv is True:
-            green("To start Django's run server:\n")
-            print(f"cd {name}")
-            print("uv run manage.py runserver")
+    if initialize_uv is True:
+        green("To start Django's run server:\n")
+        print(f"cd {name}")
+        print("uv run manage.py runserver")
