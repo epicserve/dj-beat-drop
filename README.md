@@ -18,8 +18,10 @@ additional features and improvements.
 
 ## Future Goals
 
-- **Specify Django Version**: Add an option to specify the Django version when creating a new project.
-- **Polish**: Add lots of polish inspired by `laravel` CLI. Possibly refactor to use Rust or the coolest CLI library.
+- **LTS Version**: Add an option so you can use the latest LTS version of Django instead of the latest release default.
+- **Environment Variables**: Add support for environment variables to configure the project.
+- **Tests**: Add tests to ensure the utility works as expected. 
+- **Polish**: Add lots of polish inspired by `laravel` CLI.
 - **Additional Subcommands**: Introduce more subcommands to enhance functionality.
 - **Official Django Project**: Aim to have this utility included as an official Django project, potentially renaming the 
   command to `django` for easier usage (e.g., `django new`).
