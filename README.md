@@ -1,5 +1,7 @@
 # dj-beat-drop
 
+<img src="images/logo.jpg" alt="Logo" style="width: 250px;">
+
 `dj-beat-drop` is a CLI utility designed to simplify the creation of new Django projects by organizing all configuration
 files into a `config` directory, instead of using Django's default naming convention. This approach avoids the
 antipattern of naming the config directory the same as the project name.
