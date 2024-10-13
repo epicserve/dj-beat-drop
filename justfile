@@ -15,3 +15,9 @@ publish: build
 @update_templates:
     uv run python scripts/update_templates.py
     just _success "Templates updated."
+
+@version_bump version:
+    sed -i '' 's/version = ".*"/version = "{{ version }}"/' pyproject.toml
+    git add pyproject.toml
+    git commit -m "Version bump to v{{ version }}"
+    just _success "Version bumped to v{{ version }}."
