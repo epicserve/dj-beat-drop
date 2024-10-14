@@ -42,8 +42,10 @@ def handle_new(name, overwrite):
     if name is None:
         name = inquirer.text("Project name:").execute()
 
-    if re.match(r'^[-a-z_]+$', name) is None:
-        red("Invalid project name. Please use only lowercase letters, hyphens, and underscores.")
+    if re.match(r"^[-a-z_]+$", name) is None:
+        red(
+            "Invalid project name. Please use only lowercase letters, hyphens, and underscores."
+        )
         return
 
     django_version, minor_version = get_latest_django_version()

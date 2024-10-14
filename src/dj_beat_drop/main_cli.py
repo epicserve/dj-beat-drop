@@ -1,9 +1,29 @@
 import argparse
 
+import requests
+
 from dj_beat_drop.new import handle_new
+from pkg_resources import get_distribution, parse_version
+
+from dj_beat_drop.utils import green
+
+
+def check_version():
+    package_name = "dj-beat-drop"
+    current_version = get_distribution(package_name).version
+
+    response = requests.get(f"https://pypi.org/pypi/{package_name}/json")
+    latest_version = response.json()["info"]["version"]
+
+    if parse_version(current_version) < parse_version(latest_version):
+        green(
+            f"\033[0;33m\nA new version of {package_name} is available ({latest_version}). You are using {current_version}. To update, run:\n\033[0m"
+        )
+        print(f"  pip install --upgrade {package_name}\n")
 
 
 def main():
+    check_version()
     parser = argparse.ArgumentParser(description="DJ Beat Drop")
     subparsers = parser.add_subparsers(dest="command")
 
