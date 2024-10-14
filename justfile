@@ -18,6 +18,7 @@ publish: build
 
 @version_bump version:
     sed -i '' 's/version = ".*"/version = "{{ version }}"/' pyproject.toml
-    git add pyproject.toml
+    uv sync
+    git add pyproject.toml uv.lock
     git commit -m "Version bump to v{{ version }}"
     just _success "Version bumped to v{{ version }}."
