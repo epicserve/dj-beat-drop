@@ -21,3 +21,8 @@ dev-dependencies = [
 
 [project.scripts]
 beatdrop = "dj_beat_drop.main_cli:main"
+
+[project.urls]
+Homepage = "https://github.com/epicserve/dj-beat-drop"
+Source = "https://github.com/epicserve/dj-beat-drop"
+Documentation = "https://github.com/epicserve/dj-beat-drop"
