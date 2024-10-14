@@ -5,7 +5,12 @@ import shutil
 
 from InquirerPy import inquirer
 
-from dj_beat_drop.utils import green, red, get_latest_django_version
+from dj_beat_drop.utils import (
+    green,
+    red,
+    get_latest_django_version,
+    get_lts_django_version,
+)
 
 
 def get_secret_key():
@@ -13,7 +18,7 @@ def get_secret_key():
     Return a 50 character random string usable as a SECRET_KEY setting value.
     """
     chars = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)"
-    return "".join(secrets.choice(chars) for i in range(50))
+    return "".join(secrets.choice(chars) for _ in range(50))
 
 
 def rename_template_files(project_dir):
@@ -38,7 +43,7 @@ def replace_variables(project_dir, context: dict[str, str]):
                 f.write(content)
 
 
-def handle_new(name, overwrite):
+def handle_new(name, use_lts, overwrite_target_dir):
     if name is None:
         name = inquirer.text("Project name:").execute()
 
@@ -49,13 +54,15 @@ def handle_new(name, overwrite):
         return
 
     django_version, minor_version = get_latest_django_version()
+    if use_lts is True:
+        django_version, minor_version = get_lts_django_version()
     project_dir = os.path.join(os.getcwd(), name)
     template_dir_src = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), "templates", minor_version
     )
 
     if os.path.exists(project_dir):
-        if overwrite is False:
+        if overwrite_target_dir is False:
             overwrite_response = inquirer.confirm(
                 message=f"The directory '{name}' already exists. Do you want to overwrite it?",
                 default=True,
@@ -69,7 +76,7 @@ def handle_new(name, overwrite):
         message="Initialize your project with UV?", default=True
     ).execute()
 
-    shutil.copytree(template_dir_src, project_dir)
+    shutil.copytree(str(template_dir_src), project_dir)
     os.rename(
         os.path.join(project_dir, "project_name"), os.path.join(project_dir, "config")
     )

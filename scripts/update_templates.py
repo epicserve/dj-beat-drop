@@ -5,7 +5,7 @@ from io import BytesIO
 
 import requests
 
-from dj_beat_drop.utils import red, get_latest_django_version
+from dj_beat_drop.utils import red, get_latest_django_version, get_lts_django_version
 
 
 def download_django(version):
@@ -37,6 +37,9 @@ def main():
     latest_version, minor_version = get_latest_django_version()
     download_dir = download_django(latest_version)
     copy_template_dir(download_dir, latest_version, minor_version)
+    lts_version, lts_minor_version = get_lts_django_version()
+    download_dir = download_django(lts_version)
+    copy_template_dir(download_dir, lts_version, lts_minor_version)
     shutil.rmtree("/tmp/django_template")
 
 

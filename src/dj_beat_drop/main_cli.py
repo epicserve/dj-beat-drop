@@ -7,6 +7,7 @@ from pkg_resources import get_distribution, parse_version
 
 from dj_beat_drop.utils import green
 
+
 def get_ascii_logo():
     logo = r"""
    ___     __  ___           __    ___              
@@ -16,6 +17,7 @@ def get_ascii_logo():
                                              /_/
 """
     return logo
+
 
 def check_version():
     package_name = "dj-beat-drop"
@@ -32,7 +34,7 @@ def check_version():
 
 
 def main():
-    print(f'\033[38;2;255;165;0m{get_ascii_logo()}\033[0m')
+    print(f"\033[38;2;255;165;0m{get_ascii_logo()}\033[0m")
     check_version()
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command")
@@ -46,6 +48,11 @@ def main():
         help="Project name (e.g. 'example_project' or 'example-project').",
     )
     new_parser.add_argument(
+        "--lts",
+        action="store_true",
+        help="Use the latest LTS version of Django.",
+    )
+    new_parser.add_argument(
         "--overwrite",
         action="store_true",
         help="Overwrite the project directory if it already exists.",
@@ -54,7 +61,7 @@ def main():
     args = parser.parse_args()
 
     if args.command == "new":
-        handle_new(args.name, args.overwrite)
+        handle_new(args.name, args.lts, args.overwrite)
     else:
         parser.print_help()
 
