@@ -7,6 +7,15 @@ from pkg_resources import get_distribution, parse_version
 
 from dj_beat_drop.utils import green
 
+def get_ascii_logo():
+    logo = r"""
+   ___     __  ___           __    ___              
+  / _ \__ / / / _ )___ ___ _/ /_  / _ \_______  ___ 
+ / // / // / / _  / -_) _ `/ __/ / // / __/ _ \/ _ \
+/____/\___/ /____/\__/\_,_/\__/ /____/_/  \___/ .__/
+                                             /_/
+"""
+    return logo
 
 def check_version():
     package_name = "dj-beat-drop"
@@ -23,8 +32,9 @@ def check_version():
 
 
 def main():
+    print(f'\033[38;2;255;165;0m{get_ascii_logo()}\033[0m')
     check_version()
-    parser = argparse.ArgumentParser(description="DJ Beat Drop")
+    parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command")
 
     # Add 'new' subcommand
