@@ -31,7 +31,50 @@ def rename_template_files(project_dir):
                 os.rename(old_file, new_file)
 
 
-def replace_variables(project_dir, context: dict[str, str]):
+def replace_settings_with_environs(content: str) -> str:
+    rtn_val = content
+    init_env = "# Initialize environs\n" "env = Env()\n" "env.read_env()"
+    rtn_val = f"from environs import Env\n\n{rtn_val}"
+    rtn_val = re.sub(
+        r"(^BASE_DIR.+$)", rf"\1\n\n\n{init_env}", rtn_val, flags=re.MULTILINE
+    )
+    rtn_val = re.sub(
+        r"^SECRET_KEY =.+$",
+        'SECRET_KEY = env.str("SECRET_KEY")',
+        rtn_val,
+        flags=re.MULTILINE,
+    )
+    rtn_val = re.sub(
+        r"^DEBUG =.+$", 'DEBUG = env.bool("DEBUG")', rtn_val, flags=re.MULTILINE
+    )
+    rtn_val = re.sub(
+        r"^ALLOWED_HOSTS = .+$",
+        'ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")',
+        rtn_val,
+        flags=re.MULTILINE,
+    )
+    rtn_val = re.sub(
+        r"^DATABASES\s*=\s*\{.+?\}\n\}",
+        r'DATABASES = {"default": env.dj_db_url("DATABASE_URL")}',
+        rtn_val,
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    return rtn_val
+
+
+def create_dot_envfile(project_dir, context: dict[str, str]):
+    env_file_path = os.path.join(project_dir, ".env")
+    env_content = (
+        "DEBUG=True\n"
+        f'SECRET_KEY="{context['secret_key']}"\n'
+        f'ALLOWED_HOSTS=\n'
+        f"DATABASE_URL=sqlite:///{os.path.join(project_dir, 'db.sqlite3')}"
+    )
+    with open(env_file_path, "w") as f:
+        f.write(env_content)
+
+
+def replace_variables(project_dir, context: dict[str, str], initialize_env):
     for root, _, files in os.walk(project_dir):
         for file in files:
             file_path = os.path.join(root, file)
@@ -39,6 +82,9 @@ def replace_variables(project_dir, context: dict[str, str]):
                 content = f.read()
             for variable, value in context.items():
                 content = content.replace(f"{{{{ {variable} }}}}", value)
+            if file_path.endswith("config/settings.py") and initialize_env is True:
+                content = replace_settings_with_environs(content)
+                create_dot_envfile(project_dir, context)
             with open(file_path, "w") as f:
                 f.write(content)
 
@@ -75,6 +121,9 @@ def handle_new(name, use_lts, overwrite_target_dir):
     initialize_uv = inquirer.confirm(
         message="Initialize your project with UV?", default=True
     ).execute()
+    initialize_env = inquirer.confirm(
+        message="Initialize your project with an .env file and environs?", default=True
+    ).execute()
 
     shutil.copytree(str(template_dir_src), project_dir)
     os.rename(
@@ -90,6 +139,7 @@ def handle_new(name, use_lts, overwrite_target_dir):
             "docs_version": minor_version,
             "secret_key": get_secret_key(),
         },
+        initialize_env,
     )
 
     if initialize_uv is True:
@@ -97,6 +147,8 @@ def handle_new(name, use_lts, overwrite_target_dir):
         os.system("uv init")
         os.system("rm hello.py")
         os.system(f"uv add django~='{minor_version}'")
+        if initialize_env is True:
+            os.system("uv add environs[django]")
         os.system("uv run manage.py migrate")
 
     green(f"New Django project created.\n")
