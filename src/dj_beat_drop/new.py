@@ -66,7 +66,7 @@ def create_dot_envfile(project_dir, context: dict[str, str]):
     env_file_path = os.path.join(project_dir, ".env")
     env_content = (
         "DEBUG=True\n"
-        f'SECRET_KEY="{context['secret_key']}"\n'
+        f"SECRET_KEY=\"{context['secret_key']}\"\n"
         f'ALLOWED_HOSTS=\n'
         f"DATABASE_URL=sqlite:///{os.path.join(project_dir, 'db.sqlite3')}"
     )
@@ -151,7 +151,7 @@ def handle_new(name, use_lts, overwrite_target_dir):
             os.system("uv add environs[django]")
         os.system("uv run manage.py migrate")
 
-    green(f"New Django project created.\n")
+    green("New Django project created.\n")
 
     if initialize_uv is True:
         green("To start Django's run server:\n")
