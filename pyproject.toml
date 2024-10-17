@@ -28,3 +28,22 @@ beatdrop = "dj_beat_drop.main_cli:main"
 Homepage = "https://github.com/epicserve/dj-beat-drop"
 Source = "https://github.com/epicserve/dj-beat-drop"
 Documentation = "https://github.com/epicserve/dj-beat-drop"
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle
+    "F",  # Pyflakes
+    "UP",  # pyupgrade
+    "B",  # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "I",  # isort
+    "D",  # pydocstyle
+    "S",  # bandit
+]
+ignore = ["D100", "D101", "D102", "D103", "D104", "D106", "D203", "D212"]
+
+[tool.ruff.lint.isort]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder", ]

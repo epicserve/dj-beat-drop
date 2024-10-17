@@ -35,18 +35,14 @@ def replace_settings_with_environs(content: str) -> str:
     rtn_val = content
     init_env = "# Initialize environs\n" "env = Env()\n" "env.read_env()"
     rtn_val = f"from environs import Env\n\n{rtn_val}"
-    rtn_val = re.sub(
-        r"(^BASE_DIR.+$)", rf"\1\n\n\n{init_env}", rtn_val, flags=re.MULTILINE
-    )
+    rtn_val = re.sub(r"(^BASE_DIR.+$)", rf"\1\n\n\n{init_env}", rtn_val, flags=re.MULTILINE)
     rtn_val = re.sub(
         r"^SECRET_KEY =.+$",
         'SECRET_KEY = env.str("SECRET_KEY")',
         rtn_val,
         flags=re.MULTILINE,
     )
-    rtn_val = re.sub(
-        r"^DEBUG =.+$", 'DEBUG = env.bool("DEBUG")', rtn_val, flags=re.MULTILINE
-    )
+    rtn_val = re.sub(r"^DEBUG =.+$", 'DEBUG = env.bool("DEBUG")', rtn_val, flags=re.MULTILINE)
     rtn_val = re.sub(
         r"^ALLOWED_HOSTS = .+$",
         'ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")',
@@ -94,18 +90,14 @@ def handle_new(name, use_lts, overwrite_target_dir):
         name = inquirer.text("Project name:").execute()
 
     if re.match(r"^[-a-z_]+$", name) is None:
-        red(
-            "Invalid project name. Please use only lowercase letters, hyphens, and underscores."
-        )
+        red("Invalid project name. Please use only lowercase letters, hyphens, and underscores.")
         return
 
     django_version, minor_version = get_latest_django_version()
     if use_lts is True:
         django_version, minor_version = get_lts_django_version()
     project_dir = os.path.join(os.getcwd(), name)
-    template_dir_src = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "templates", minor_version
-    )
+    template_dir_src = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates", minor_version)
 
     if os.path.exists(project_dir):
         if overwrite_target_dir is False:
@@ -118,17 +110,13 @@ def handle_new(name, use_lts, overwrite_target_dir):
                 return
         shutil.rmtree(project_dir)
 
-    initialize_uv = inquirer.confirm(
-        message="Initialize your project with UV?", default=True
-    ).execute()
+    initialize_uv = inquirer.confirm(message="Initialize your project with UV?", default=True).execute()
     initialize_env = inquirer.confirm(
         message="Initialize your project with an .env file and environs?", default=True
     ).execute()
 
     shutil.copytree(str(template_dir_src), project_dir)
-    os.rename(
-        os.path.join(project_dir, "project_name"), os.path.join(project_dir, "config")
-    )
+    os.rename(os.path.join(project_dir, "project_name"), os.path.join(project_dir, "config"))
 
     rename_template_files(project_dir)
     replace_variables(

@@ -22,12 +22,8 @@ def download_django(version):
 
 
 def copy_template_dir(download_dir, latest_version, minor_version):
-    template_dir_src = os.path.join(
-        download_dir, f"django-{latest_version}/django/conf/project_template"
-    )
-    template_dir_dst = os.path.join(
-        os.getcwd(), "src/dj_beat_drop/templates", minor_version
-    )
+    template_dir_src = os.path.join(download_dir, f"django-{latest_version}/django/conf/project_template")
+    template_dir_dst = os.path.join(os.getcwd(), "src/dj_beat_drop/templates", minor_version)
     if os.path.exists(template_dir_dst):
         shutil.rmtree(template_dir_dst)
     shutil.copytree(template_dir_src, template_dir_dst)
