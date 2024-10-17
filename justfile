@@ -6,9 +6,6 @@ set dotenv-load := true
 @_start_command message:
     just _success "\n{{ message }} ..."
 
-build:
-    rm -rf dist/
-    uv build
 format: format_just format_python
 
 @format_just:
@@ -18,9 +15,6 @@ format: format_just format_python
 @format_python:
     just _start_command "Formatting Python"
     ruff format
-
-publish: build
-    uv publish --token $PYPI_TOKEN
 
 @test:
     uv run pytest
