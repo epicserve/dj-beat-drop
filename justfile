@@ -7,6 +7,7 @@ set dotenv-load := true
     just _success "\n{{ message }} ..."
 
 build:
+    rm -rf dist/
     uv build
 format: format_just format_python
 

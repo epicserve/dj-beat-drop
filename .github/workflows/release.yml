@@ -3,18 +3,18 @@ name: Publish Python Package
 on:
   release:
     types: [created]
-  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   test:
+    uses: ./.github/workflows/test.yml
+
+  publish:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        python-version: [ "3.11", "3.12", "3.13" ]
+    needs: test
 
     steps:
       - uses: actions/checkout@v4
@@ -22,8 +22,13 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v3
 
-      - name: Set up Python ${{ matrix.python-version }}
-        run: uv python install ${{ matrix.python-version }}
+      - name: Set up Python 3.13
+        run: uv python install 3.13
 
-      - name: Run tests
-        run: uv run --python ${{ matrix.python-version }} pytest
+      - name: Build package
+        run: uv build --python 3.13
+
+      - name: Publish package
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.UV_PUBLISH_TOKEN }}
+        run: uv publish
