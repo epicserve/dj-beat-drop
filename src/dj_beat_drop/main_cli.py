@@ -37,6 +37,12 @@ def main():
     print(f"\033[38;2;255;165;0m{get_ascii_logo()}\033[0m")
     check_version()
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=f"Version {get_distribution('dj-beat-drop').version}",
+    )
     subparsers = parser.add_subparsers(dest="command")
 
     # Add 'new' subcommand
