@@ -38,9 +38,8 @@ format: format_just format_python
     uv run python scripts/update_templates.py
     just _success "Templates updated."
 
-@version_bump version:
-    sed -i '' 's/version = ".*"/version = "{{ version }}"/' pyproject.toml
+@version_bump *ARGS:
+    uvx bumpver update {{ ARGS }}
     uv sync
-    git add pyproject.toml uv.lock
-    git commit -m "Version bump to v{{ version }}"
-    just _success "Version bumped to v{{ version }}."
+    git add uv.lock
+    git commit --amend --no-edit
