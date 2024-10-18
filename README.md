@@ -1,8 +1,9 @@
 
-
-<p style="text-align: center">
-  <img alt="logo" src="https://raw.githubusercontent.com/epicserve/dj-beat-drop/main/images/logo.jpg" alt="Logo" style="width: 250px;">
-</p>
+<div align="center">
+  <p align="center">
+    <img alt="logo" src="https://raw.githubusercontent.com/epicserve/dj-beat-drop/main/images/logo.jpg" alt="Logo" style="width: 250px;">
+  </p>
+</div>
 
 # dj-beat-drop
 
