@@ -47,3 +47,20 @@ ignore = ["D100", "D101", "D102", "D103", "D104", "D106", "D203", "D212"]
 
 [tool.ruff.lint.isort]
 section-order = ["future", "standard-library", "third-party", "first-party", "local-folder", ]
+
+[tool.bumpver]
+commit = false
+commit_message = ":bookmark: bump version {old_version} -> {new_version}"
+current_version = "0.3.1"
+push = false
+tag = false
+version_pattern = "MAJOR.MINOR.PATCH"
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+    '^version = "{version}"',
+    '^current_version = "{version}"',
+]
+"uv.lock" = [
+  'version = "{version}"'
+]
