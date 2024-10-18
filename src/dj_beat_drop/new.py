@@ -6,10 +6,10 @@ import shutil
 from InquirerPy import inquirer
 
 from dj_beat_drop.utils import (
-    green,
-    red,
     get_latest_django_version,
     get_lts_django_version,
+    green,
+    red,
 )
 
 
@@ -74,7 +74,7 @@ def replace_variables(project_dir, context: dict[str, str], initialize_env):
     for root, _, files in os.walk(project_dir):
         for file in files:
             file_path = os.path.join(root, file)
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 content = f.read()
             for variable, value in context.items():
                 content = content.replace(f"{{{{ {variable} }}}}", value)
