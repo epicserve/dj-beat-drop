@@ -16,6 +16,8 @@ format: format_just format_python
     just _start_command "Formatting Python"
     ruff format
 
+@pre_commit: format test
+
 @test:
     uv run pytest
 
@@ -29,4 +31,3 @@ format: format_just format_python
     git add pyproject.toml uv.lock
     git commit -m "Version bump to v{{ version }}"
     just _success "Version bumped to v{{ version }}."
-
