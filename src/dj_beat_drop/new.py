@@ -1,24 +1,12 @@
 import os
 import re
-import secrets
 import shutil
+from pathlib import Path
 
 from InquirerPy import inquirer
 
-from dj_beat_drop.utils import (
-    get_latest_django_version,
-    get_lts_django_version,
-    green,
-    red,
-)
-
-
-def get_secret_key():
-    """
-    Return a 50 character random string usable as a SECRET_KEY setting value.
-    """
-    chars = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)"
-    return "".join(secrets.choice(chars) for _ in range(50))
+from dj_beat_drop import utils
+from dj_beat_drop.utils import color
 
 
 def rename_template_files(project_dir):
@@ -85,48 +73,19 @@ def replace_variables(project_dir, context: dict[str, str], initialize_env):
                 f.write(content)
 
 
-def handle_new(name, use_lts, overwrite_target_dir):
-    if name is None:
-        name = inquirer.text("Project name:").execute()
-
-    if re.match(r"^[-a-z_]+$", name) is None:
-        red("Invalid project name. Please use only lowercase letters, hyphens, and underscores.")
-        return
-
-    django_version, minor_version = get_latest_django_version()
-    if use_lts is True:
-        django_version, minor_version = get_lts_django_version()
-    project_dir = os.path.join(os.getcwd(), name)
+def create_new_project(
+    *, name: str, use_lts: bool, project_dir: Path, initialize_uv: bool, initialize_env: bool
+) -> dict[str, str]:
+    template_context = utils.get_template_context(use_lts=use_lts)
+    minor_version = template_context["docs_version"]
     template_dir_src = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates", minor_version)
-
-    if os.path.exists(project_dir):
-        if overwrite_target_dir is False:
-            overwrite_response = inquirer.confirm(
-                message=f"The directory '{name}' already exists. Do you want to overwrite it?",
-                default=True,
-            ).execute()
-            if overwrite_response is False:
-                red("Operation cancelled.")
-                return
-        shutil.rmtree(project_dir)
-
-    initialize_uv = inquirer.confirm(message="Initialize your project with UV?", default=True).execute()
-    initialize_env = inquirer.confirm(
-        message="Initialize your project with an .env file and environs?", default=True
-    ).execute()
-
     shutil.copytree(str(template_dir_src), project_dir)
     os.rename(os.path.join(project_dir, "project_name"), os.path.join(project_dir, "config"))
 
     rename_template_files(project_dir)
     replace_variables(
         project_dir,
-        {
-            "project_name": "config",
-            "django_version": django_version,
-            "docs_version": minor_version,
-            "secret_key": get_secret_key(),
-        },
+        template_context,
         initialize_env,
     )
 
@@ -139,9 +98,47 @@ def handle_new(name, use_lts, overwrite_target_dir):
             os.system("uv add environs[django]")
         os.system("uv run manage.py migrate")
 
-    green("New Django project created.\n")
+    color.green("New Django project created.\n")
 
     if initialize_uv is True:
-        green("To start Django's run server:\n")
+        color.green("To start Django's run server:\n")
         print(f"cd {name}")
         print("uv run manage.py runserver")
+
+    return template_context
+
+
+def handle_new(name: str, use_lts: bool, overwrite_target_dir: bool) -> None:
+    if name is None:
+        name = inquirer.text("Project name:").execute()
+
+    if re.match(r"^[-a-z_]+$", name) is None:
+        color.red("Invalid project name. Please use only lowercase letters, hyphens, and underscores.")
+        return
+    project_dir = os.path.join(os.getcwd(), name)
+
+    if os.path.exists(project_dir):
+        if overwrite_target_dir is False:
+            overwrite_response = inquirer.confirm(
+                message=f"The directory '{name}' already exists. Do you want to overwrite it?",
+                default=True,
+            ).execute()
+            if overwrite_response is False:
+                color.red("Operation cancelled.")
+                return
+        shutil.rmtree(project_dir)
+
+    initialize_uv = inquirer.confirm(message="Initialize your project with UV?", default=True).execute()
+    initialize_env = inquirer.confirm(
+        message="Initialize your project with an .env file and environs?", default=True
+    ).execute()
+
+    create_new_project(
+        **{
+            "name": name,
+            "use_lts": use_lts,
+            "project_dir": project_dir,
+            "initialize_uv": initialize_uv,
+            "initialize_env": initialize_env,
+        }
+    )
