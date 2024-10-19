@@ -1,7 +1,9 @@
 import secrets
+import shutil
 from functools import lru_cache
 
 import requests
+from retry import retry
 
 
 class Color:
@@ -66,3 +68,9 @@ def get_secret_key():
     """Return a 50 character random string usable as a SECRET_KEY setting value."""
     chars = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)"
     return "".join(secrets.choice(chars) for _ in range(50))
+
+
+@retry(tries=5, delay=2, backoff=2, exceptions=(PermissionError,))
+def remove_directory(path):
+    """Use retry to handle PermissionError when trying to remove a directory on Windows."""
+    shutil.rmtree(path)
