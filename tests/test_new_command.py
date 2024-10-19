@@ -1,3 +1,4 @@
+import platform
 import random
 import re
 import string
@@ -85,7 +86,7 @@ class TestNewCommand(TestCase):
             remove_directory(self.project_dir)
 
     def tearDown(self):
-        if self.project_dir.exists():
+        if self.project_dir.exists() and platform.system() != "Windows":
             remove_directory(self.project_dir)
 
     @staticmethod
