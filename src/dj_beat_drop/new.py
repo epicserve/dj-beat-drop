@@ -6,7 +6,7 @@ from pathlib import Path
 from InquirerPy import inquirer
 
 from dj_beat_drop import utils
-from dj_beat_drop.utils import color
+from dj_beat_drop.utils import color, remove_directory
 
 
 def rename_template_files(project_dir):
@@ -125,7 +125,7 @@ def handle_new(name: str, use_lts: bool, overwrite_target_dir: bool) -> None:
             if overwrite_response is False:
                 color.red("Operation cancelled.")
                 return
-        shutil.rmtree(project_dir)
+        remove_directory(project_dir)
 
     initialize_uv = inquirer.confirm(message="Initialize your project with UV?", default=True).execute()
     initialize_env = inquirer.confirm(
