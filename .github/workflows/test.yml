@@ -13,28 +13,13 @@ permissions:
   contents: read
 
 jobs:
-#  test:
-#    runs-on: ${{ matrix.os }}
-#
-#    strategy:
-#      matrix:
-#        os: [ubuntu-latest, windows-latest]
-#        python-version: [ "3.11", "3.12", "3.13" ]
-#
-#    steps:
-#      - uses: actions/checkout@v4
-#
-#      - name: Install uv
-#        uses: astral-sh/setup-uv@v3
-#
-#      - name: Set up Python ${{ matrix.python-version }}
-#        run: uv python install ${{ matrix.python-version }}
-#
-#      - name: Run tests
-#        run: uv run --python ${{ matrix.python-version }} pytest
+  test:
+    runs-on: ${{ matrix.os }}
 
-  test-uv-add:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: [ "3.11", "3.12", "3.13" ]
 
     steps:
       - uses: actions/checkout@v4
@@ -42,8 +27,8 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v3
 
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
       - name: Run tests
-        run: |
-          uv init
-          uv add django!=5.1
-          uv add environs[django]
+        run: uv run --python ${{ matrix.python-version }} pytest
