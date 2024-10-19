@@ -10,13 +10,19 @@ format: format_just format_python
 
 @format_just:
     just _start_command "Formatting Justfile"
-    ruff format
+    just --fmt --unstable
 
 @format_python:
     just _start_command "Formatting Python"
-    ruff format
+    uv run ruff format
 
-@pre_commit: format test
+@lint: lint_python
+
+@lint_python:
+    just _start_command "Linting Python"
+    uv run ruff check
+
+@pre_commit: format lint test
 
 @test:
     uv run pytest

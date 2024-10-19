@@ -91,12 +91,12 @@ def create_new_project(
 
     if initialize_uv is True:
         os.chdir(project_dir)
-        os.system("uv init")
-        os.system("rm hello.py")
-        os.system(f"uv add django~='{minor_version}'")
+        os.system("uv init")  # noqa: S605, S607
+        os.system("rm hello.py")  # noqa: S605, S607
+        os.system(f"uv add django~='{minor_version}'")  # noqa: S605
         if initialize_env is True:
-            os.system("uv add environs[django]")
-        os.system("uv run manage.py migrate")
+            os.system("uv add environs[django]")  # noqa: S605, S607
+        os.system("uv run manage.py migrate")  # noqa: S605, S607
 
     color.green("New Django project created.\n")
 

@@ -19,7 +19,7 @@ color = Color()
 
 @lru_cache
 def get_django_releases():
-    response = requests.get("https://pypi.org/pypi/Django/json")
+    response = requests.get("https://pypi.org/pypi/Django/json", timeout=10)
     if response.status_code == 200:
         data = response.json()
         return {"latest": data["info"]["version"], "releases": data["releases"]}
@@ -63,8 +63,6 @@ def get_template_context(*, use_lts: bool):
 
 
 def get_secret_key():
-    """
-    Return a 50 character random string usable as a SECRET_KEY setting value.
-    """
+    """Return a 50 character random string usable as a SECRET_KEY setting value."""
     chars = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)"
     return "".join(secrets.choice(chars) for _ in range(50))

@@ -7,8 +7,7 @@ from unittest import TestCase
 
 from dj_beat_drop.new import create_new_project
 
-
-ENV_SECRET_KEY_PATTERN = 'SECRET_KEY = env.str("SECRET_KEY")'
+ENV_SECRET_KEY_PATTERN = 'SECRET_KEY = env.str("SECRET_KEY")'  # noqa: S105
 FILE_ASSERTIONS = {
     "manage.py": [
         "os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{{ project_name }}.settings')",
@@ -61,7 +60,8 @@ ENV_ASSERTIONS = {
 
 class SafeDict(dict):
     def __missing__(self, key):
-        return f"{{{key}}}"  # Keeps the original placeholder if the key is missing
+        """Make sure to keep the original placeholder if the key is missing."""
+        return f"{{{key}}}"
 
 
 class TestNewCommand(TestCase):
