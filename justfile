@@ -27,6 +27,10 @@ format: format_just format_python
 @test:
     uv run pytest
 
+@test_with_coverage:
+    uv run pytest --cov --cov-config=pyproject.toml --cov-report=html
+    open htmlcov/index.html
+
 @update_templates:
     uv run python scripts/update_templates.py
     just _success "Templates updated."
