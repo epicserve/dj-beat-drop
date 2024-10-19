@@ -11,12 +11,11 @@ from dj_beat_drop.utils import color
 
 def rename_template_files(project_dir):
     # Rename .py-tpl files to .py
-    for root, _, files in os.walk(project_dir):
-        for file in files:
-            if file.endswith(".py-tpl"):
-                old_file = os.path.join(root, file)
-                new_file = os.path.join(root, file[:-4])
-                os.rename(old_file, new_file)
+    for file in project_dir.rglob("*"):
+        if file.is_file() is False:
+            continue
+        if file.name.endswith(".py-tpl"):
+            os.rename(file, file.with_name(file.name[:-4]))
 
 
 def replace_settings_with_environs(content: str) -> str:
@@ -47,30 +46,30 @@ def replace_settings_with_environs(content: str) -> str:
 
 
 def create_dot_envfile(project_dir, context: dict[str, str]):
-    env_file_path = os.path.join(project_dir, ".env")
+    env_file_path = project_dir / ".env"
     env_content = (
         "DEBUG=True\n"
         f"SECRET_KEY=\"{context['secret_key']}\"\n"
         f'ALLOWED_HOSTS=\n'
-        f"DATABASE_URL=sqlite:///{os.path.join(project_dir, 'db.sqlite3')}"
+        f"DATABASE_URL=sqlite:///{project_dir / 'db.sqlite3'}"
     )
     with open(env_file_path, "w") as f:
         f.write(env_content)
 
 
 def replace_variables(project_dir, context: dict[str, str], initialize_env):
-    for root, _, files in os.walk(project_dir):
-        for file in files:
-            file_path = os.path.join(root, file)
-            with open(file_path) as f:
-                content = f.read()
-            for variable, value in context.items():
-                content = content.replace(f"{{{{ {variable} }}}}", value)
-            if file_path.endswith("config/settings.py") and initialize_env is True:
-                content = replace_settings_with_environs(content)
-                create_dot_envfile(project_dir, context)
-            with open(file_path, "w") as f:
-                f.write(content)
+    for file in project_dir.rglob("*"):
+        if file.is_file() is False:
+            continue
+        with file.open() as f:
+            content = f.read()
+        for variable, value in context.items():
+            content = content.replace(f"{{{{ {variable} }}}}", value)
+        if str(file.relative_to(project_dir)) == "config/settings.py" and initialize_env is True:
+            content = replace_settings_with_environs(content)
+            create_dot_envfile(project_dir, context)
+        with file.open("w") as f:
+            f.write(content)
 
 
 def create_new_project(
@@ -78,9 +77,9 @@ def create_new_project(
 ) -> dict[str, str]:
     template_context = utils.get_template_context(use_lts=use_lts)
     minor_version = template_context["docs_version"]
-    template_dir_src = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates", minor_version)
-    shutil.copytree(str(template_dir_src), project_dir)
-    os.rename(os.path.join(project_dir, "project_name"), os.path.join(project_dir, "config"))
+    template_dir_src = Path(__file__).parent / "templates" / minor_version
+    shutil.copytree(template_dir_src, project_dir)
+    os.rename(project_dir / "project_name", project_dir / "config")
 
     rename_template_files(project_dir)
     replace_variables(
@@ -115,9 +114,9 @@ def handle_new(name: str, use_lts: bool, overwrite_target_dir: bool) -> None:
     if re.match(r"^[-a-z_]+$", name) is None:
         color.red("Invalid project name. Please use only lowercase letters, hyphens, and underscores.")
         return
-    project_dir = os.path.join(os.getcwd(), name)
+    project_dir = Path.cwd() / name
 
-    if os.path.exists(project_dir):
+    if project_dir.exists():
         if overwrite_target_dir is False:
             overwrite_response = inquirer.confirm(
                 message=f"The directory '{name}' already exists. Do you want to overwrite it?",
