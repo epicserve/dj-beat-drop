@@ -4,7 +4,7 @@ import requests
 from pkg_resources import get_distribution, parse_version
 
 from dj_beat_drop.new import handle_new
-from dj_beat_drop.utils import green
+from dj_beat_drop.utils import color
 
 
 def get_ascii_logo():
@@ -26,7 +26,7 @@ def check_version():
     latest_version = response.json()["info"]["version"]
 
     if parse_version(current_version) < parse_version(latest_version):
-        green(
+        color.green(
             f"\033[0;33m\nA new version of {package_name} is available ({latest_version}). You are using "
             f"{current_version}. To update, run:\n\033[0m"
         )
