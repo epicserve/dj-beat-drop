@@ -92,7 +92,7 @@ def create_new_project(
         os.chdir(project_dir)
         os.system("uv init")  # noqa: S605, S607
         os.system("rm hello.py")  # noqa: S605, S607
-        os.system(f"uv add 'django~={minor_version}'")  # noqa: S605
+        os.system(f'uv add "django~={minor_version}"')  # noqa: S605
         if initialize_env is True:
             os.system("uv add environs[django]")  # noqa: S605, S607
         os.system("uv run manage.py migrate")  # noqa: S605, S607
