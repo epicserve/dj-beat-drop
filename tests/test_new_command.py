@@ -2,7 +2,6 @@ import random
 import re
 import shutil
 import string
-import sys
 from pathlib import Path
 from unittest import TestCase
 
@@ -36,9 +35,7 @@ FILE_ASSERTIONS = {
     ],
 }
 UV_ASSERTIONS = {
-    ".python-version": [
-        "{{ python_version }}",
-    ],
+    ".python-version": [],
     "pyproject.toml": [
         'name = "{{ project_dir_name }}"',
         "django~={{ docs_version }}",
@@ -104,7 +101,6 @@ class TestNewCommand(TestCase):
         assertion_context = template_context.copy()
         assertion_context["project_dir_name"] = project_dir.name.replace("_", "-")
         assertion_context["project_dir"] = str(project_dir)
-        assertion_context["python_version"] = f"{sys.version_info.major}.{sys.version_info.minor}"
         for file in project_dir.rglob("*"):
             relative_path = str(file.relative_to(project_dir))
             assertions = []
