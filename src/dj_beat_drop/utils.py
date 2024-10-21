@@ -5,13 +5,19 @@ import requests
 
 
 class Color:
+    ESCAPE = "\033[0m"
+
     @staticmethod
     def green(text):
-        print(f"\033[92m{text}\033[0m")
+        print(f"\033[92m{text}{Color.ESCAPE}")
 
     @staticmethod
     def red(text):
-        print(f"\033[91m{text}\033[0m")
+        print(f"\033[91m{text}{Color.ESCAPE}")
+
+    @staticmethod
+    def orange(text):
+        print(f"\033[38;2;255;165;0m{text}{Color.ESCAPE}")
 
 
 color = Color()
