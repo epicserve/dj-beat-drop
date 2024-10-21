@@ -1,5 +1,8 @@
 set dotenv-load := true
 
+@_default:
+    just --list
+
 @_success message:
     echo "\033[0;32m{{ message }}\033[0m"
 
