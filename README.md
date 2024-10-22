@@ -11,6 +11,12 @@
 files into a `config` directory, instead of using Django's default naming convention. This approach avoids the
 antipattern of naming the config directory the same as the project name.
 
+<div align="center">
+  <p align="center">
+    <img alt="logo" src="https://raw.githubusercontent.com/epicserve/dj-beat-drop/main/images/demo.gif" alt="Logo" width="800">
+  </p>
+</div>
+
 ## Project Status
 
 This project is in the very early stages of development, focusing on defining the API. Future releases will include
