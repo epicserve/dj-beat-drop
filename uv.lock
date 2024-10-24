@@ -193,6 +193,7 @@ version = "0.5.0"
 source = { editable = "." }
 dependencies = [
     { name = "inquirerpy" },
+    { name = "packaging" },
     { name = "requests" },
     { name = "setuptools" },
     { name = "typer" },
@@ -209,6 +210,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "inquirerpy", specifier = ">=0.3.4" },
+    { name = "packaging", specifier = ">=24.1" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "setuptools", specifier = ">=75.1.0" },
     { name = "typer", specifier = ">=0.12.5" },
