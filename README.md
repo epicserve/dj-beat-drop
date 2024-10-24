@@ -1,7 +1,8 @@
 
 <div align="center">
   <p align="center">
-    <img alt="logo" src="https://raw.githubusercontent.com/epicserve/dj-beat-drop/main/images/logo.jpg" alt="Logo" width="250">
+    <img alt="logo" src="https://raw.githubusercontent.com/epicserve/dj-beat-drop/main/images/logo.jpg" alt="Logo" width="250"><br>
+    *Placeholder logo*
   </p>
 </div>
 
