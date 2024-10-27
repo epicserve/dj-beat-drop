@@ -3,9 +3,9 @@ import re
 import shutil
 import string
 from pathlib import Path
-from unittest import TestCase
 
 from dj_beat_drop.new import create_new_project
+from tests.base_test import BaseTest, SafeDict
 
 ENV_SECRET_KEY_PATTERN = 'SECRET_KEY = env.str("SECRET_KEY")'  # noqa: S105
 FILE_ASSERTIONS = {
@@ -58,13 +58,7 @@ ENV_ASSERTIONS = {
 }
 
 
-class SafeDict(dict):
-    def __missing__(self, key):
-        """Make sure to keep the original placeholder if the key is missing."""
-        return f"{{{key}}}"
-
-
-class TestNewCommand(TestCase):
+class TestNewCommand(BaseTest):
     @staticmethod
     def _generate_random_hash(length=6):
         characters = string.ascii_lowercase + string.digits

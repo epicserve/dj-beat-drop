@@ -27,8 +27,8 @@ format: format_just format_python
 
 @pre_commit: format lint test
 
-@test:
-    uv run pytest
+@test *FLAGS:
+    uv run pytest {{ FLAGS }}
 
 @test_with_coverage:
     uv run pytest --cov --cov-config=pyproject.toml --cov-report=html

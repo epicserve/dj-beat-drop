@@ -6,16 +6,7 @@ from pathlib import Path
 from InquirerPy import inquirer
 
 from dj_beat_drop import utils
-from dj_beat_drop.utils import color
-
-
-def rename_template_files(project_dir):
-    # Rename .py-tpl files to .py
-    for file in project_dir.rglob("*"):
-        if file.is_file() is False:
-            continue
-        if file.name.endswith(".py-tpl"):
-            os.rename(file, file.with_name(file.name[:-4]))
+from dj_beat_drop.utils import color, overwrite_directory_prompt, rename_template_files, replace_variables_in_directory
 
 
 def replace_settings_with_environs(content: str) -> str:
@@ -57,21 +48,6 @@ def create_dot_envfile(project_dir, context: dict[str, str]):
         f.write(env_content)
 
 
-def replace_variables(project_dir, context: dict[str, str], initialize_env):
-    for file in project_dir.rglob("*"):
-        if file.is_file() is False:
-            continue
-        with file.open() as f:
-            content = f.read()
-        for variable, value in context.items():
-            content = content.replace(f"{{{{ {variable} }}}}", value)
-        if str(file.relative_to(project_dir)) == "config/settings.py" and initialize_env is True:
-            content = replace_settings_with_environs(content)
-            create_dot_envfile(project_dir, context)
-        with file.open("w") as f:
-            f.write(content)
-
-
 def create_new_project(
     *, name: str, use_lts: bool, project_dir: Path, initialize_uv: bool, initialize_env: bool
 ) -> dict[str, str]:
@@ -82,11 +58,17 @@ def create_new_project(
     os.rename(project_dir / "project_name", project_dir / "config")
 
     rename_template_files(project_dir)
-    replace_variables(
+    replace_variables_in_directory(
         project_dir,
         template_context,
-        initialize_env,
     )
+    if initialize_env is True:
+        with (project_dir / "config" / "settings.py").open("r") as f:
+            content = f.read()
+        content = replace_settings_with_environs(content)
+        with (project_dir / "config" / "settings.py").open("w") as f:
+            f.write(content)
+        create_dot_envfile(project_dir, template_context)
 
     if initialize_uv is True:
         os.chdir(project_dir)
@@ -116,16 +98,7 @@ def handle_new(name: str, use_lts: bool, overwrite_target_dir: bool) -> None:
         return
     project_dir = Path.cwd() / name
 
-    if project_dir.exists():
-        if overwrite_target_dir is False:
-            overwrite_response = inquirer.confirm(
-                message=f"The directory '{name}' already exists. Do you want to overwrite it?",
-                default=True,
-            ).execute()
-            if overwrite_response is False:
-                color.red("Operation cancelled.")
-                return
-        shutil.rmtree(project_dir)
+    overwrite_directory_prompt(project_dir, overwrite_target_dir)
 
     initialize_uv = inquirer.confirm(message="Initialize your project with UV?", default=True).execute()
     initialize_env = inquirer.confirm(
