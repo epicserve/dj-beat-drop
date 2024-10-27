@@ -5,7 +5,10 @@ import typer
 from packaging.version import parse
 
 from dj_beat_drop.new import handle_new
-from dj_beat_drop.utils import color
+from dj_beat_drop.new_app import create_new_app
+from dj_beat_drop.utils import (
+    color,
+)
 
 
 def get_ascii_logo():
@@ -58,6 +61,13 @@ def main_callback(
     ),
 ):
     pass
+
+
+@main_command.command()
+def new_app(
+    app_relative_path: str = typer.Argument(..., help="App relative path (e.g. 'accounts' or 'apps/accounts')."),
+):
+    create_new_app(app_relative_path)
 
 
 @main_command.command()

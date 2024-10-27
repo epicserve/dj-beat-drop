@@ -1,7 +1,12 @@
+import os
+import re
 import secrets
+import shutil
 from functools import lru_cache
+from pathlib import Path
 
 import requests
+from InquirerPy import inquirer
 
 
 class Color:
@@ -72,3 +77,41 @@ def get_secret_key():
     """Return a 50 character random string usable as a SECRET_KEY setting value."""
     chars = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)"
     return "".join(secrets.choice(chars) for _ in range(50))
+
+
+def rename_template_files(project_dir):
+    # Rename .py-tpl files to .py
+    for file in project_dir.rglob("*"):
+        if file.is_file() is False:
+            continue
+        if file.name.endswith(".py-tpl"):
+            os.rename(file, file.with_name(file.name[:-4]))
+
+
+def overwrite_directory_prompt(directory: Path, skip_confirm_prompt: bool = False) -> bool:
+    if directory.exists():
+        if skip_confirm_prompt is False:
+            overwrite_response = inquirer.confirm(
+                message=f"The directory '{directory}' already exists. Do you want to overwrite it?",
+                default=True,
+            ).execute()
+            if overwrite_response is False:
+                color.red("Operation cancelled.")
+                return
+        shutil.rmtree(directory)
+
+
+def replace_variables_in_directory(directory: Path, context: dict[str, str]):
+    for file in directory.rglob("*"):
+        if file.is_file() is False:
+            continue
+        with file.open() as f:
+            content = f.read()
+        for variable, value in context.items():
+            content = content.replace(f"{{{{ {variable} }}}}", value)
+        with file.open("w") as f:
+            f.write(content)
+
+
+def snake_or_kebab_to_camel_case(text):
+    return "".join([word.capitalize() for word in re.split(r"[-_]", text)])
