@@ -12,22 +12,23 @@ from dj_beat_drop.new import create_new_project
 
 ENV_SECRET_KEY_PATTERN = 'SECRET_KEY = env.str("SECRET_KEY")'  # noqa: S105
 SQLITE_OPTIONS_ENV = (
-    "?transaction_mode=immediate"
-    "&init_command=PRAGMA journal_mode=WAL"
-    ";PRAGMA synchronous=NORMAL"
-    ";PRAGMA mmap_size=134217728"
-    ";PRAGMA journal_size_limit=27103364"
-    ";PRAGMA cache_size=2000"
+    "?transaction_mode=IMMEDIATE"
+    "&init_command=PRAGMA+journal_mode+%3D+WAL"
+    "%3BPRAGMA+synchronous+%3D+NORMAL"
+    "%3BPRAGMA+mmap_size+%3D+134217728"
+    "%3BPRAGMA+journal_size_limit+%3D+27103364"
+    "%3BPRAGMA+cache_size+%3D+2000"
 )
-SQLITE_OPTIONS = dedent('''
+SQLITE_OPTIONS = dedent("""
     'transaction_mode': 'IMMEDIATE',
-    'init_command': """
-        PRAGMA journal_mode=WAL;
-        PRAGMA synchronous=NORMAL;
-        PRAGMA mmap_size = 134217728;
-        PRAGMA journal_size_limit = 27103364;
-        PRAGMA cache_size=2000;
-''')
+    'init_command': (
+        "PRAGMA journal_mode = WAL;"
+        "PRAGMA synchronous = NORMAL;"
+        "PRAGMA mmap_size = 134217728;"
+        "PRAGMA journal_size_limit = 27103364;"
+        "PRAGMA cache_size = 2000;"
+    )
+""")
 FILE_ASSERTIONS = {
     "manage.py": [
         "os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{{ project_name }}.settings')",
