@@ -68,7 +68,8 @@ ENV_ASSERTIONS = {
         'SECRET_KEY="{{ secret_key }}"',
         "ALLOWED_HOSTS=",
         "DATABASE_URL=sqlite:///{{ project_dir }}/db.sqlite3",
-        "{% 5.1 %}" + SQLITE_OPTIONS_ENV,
+        # If Django version is 5.1 or higher, the following option should be present in the DATABASE_URL
+        ("5.1", SQLITE_OPTIONS_ENV),
     ],
     "config/settings.py": [
         "from environs import Env",
@@ -79,7 +80,8 @@ ENV_ASSERTIONS = {
     ],
 }
 NO_ENV_ASSERTIONS = {
-    "config/settings.py": ["{% 5.1 %}" + option for option in SQLITE_OPTIONS.splitlines()],
+    # If Django version is 5.1 or higher, the following option should be present in the DATABASE_URL
+    "config/settings.py": [("5.1", option) for option in SQLITE_OPTIONS.splitlines()],
 }
 
 
@@ -142,6 +144,11 @@ class TestNewCommand(TestCase):
                 with open(file) as f:
                     content = f.read()
                 for assertion_pattern in assertions:
+                    version_str = None
+                    if isinstance(assertion_pattern, list | tuple) is True:
+                        version_str, assertion_pattern = assertion_pattern
+                    if version_str and Version(template_context["django_version"]) < Version(version_str):
+                        continue
                     if (
                         assertion_pattern.startswith("SECRET_KEY =")
                         and initialize_env is True
@@ -151,10 +158,6 @@ class TestNewCommand(TestCase):
                     if re.match(r".*{{\s[_a-z]+\s}}.*", assertion_pattern):
                         formatted_assertion = assertion_pattern.replace("{{ ", "{").replace(" }}", "}")
                         assertion = formatted_assertion.format_map(SafeDict(assertion_context))
-                    elif rematch := re.match(r".*{%\s(.*)\s%}.*", assertion_pattern):
-                        if Version(template_context["django_version"]) < Version(rematch.group(1)):
-                            continue
-                        assertion = assertion_pattern.replace(f"{{% {rematch.group(1)} %}}", "")
                     else:
                         assertion = assertion_pattern
                     assert assertion in content, f"Assertion failed for {relative_path}: {assertion}"
