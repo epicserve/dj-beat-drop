@@ -1,12 +1,26 @@
 import os
 import re
 import shutil
+import urllib.parse
 from pathlib import Path
+from textwrap import dedent
 
 from InquirerPy import inquirer
+from packaging.version import Version
 
 from dj_beat_drop import utils
 from dj_beat_drop.utils import color
+
+EXTRA_SQLITE_PARAMS = {
+    "transaction_mode": "IMMEDIATE",
+    "init_command": (
+        "PRAGMA journal_mode = WAL;"
+        "PRAGMA synchronous = NORMAL;"
+        "PRAGMA mmap_size = 134217728;"
+        "PRAGMA journal_size_limit = 27103364;"
+        "PRAGMA cache_size = 2000"
+    ),
+}
 
 
 def rename_template_files(project_dir):
@@ -16,6 +30,36 @@ def rename_template_files(project_dir):
             continue
         if file.name.endswith(".py-tpl"):
             os.rename(file, file.with_name(file.name[:-4]))
+
+
+def replace_sqlite_config(content: str, django_version: str) -> str:
+    if Version(django_version) < Version("5.1"):
+        return content
+
+    init_command_str = "".join(
+        [f'                 "{param};"\n' for param in EXTRA_SQLITE_PARAMS["init_command"].split(";")]
+    )
+    rtn_val = content
+    rtn_val = re.sub(
+        r"^DATABASES\s*=\s*\{.+?\}\n\}",
+        dedent(
+            "DATABASES = {\n"
+            "    'default': {\n"
+            "        'ENGINE': 'django.db.backends.sqlite3',\n"
+            "        'NAME': BASE_DIR / 'db.sqlite3',\n"
+            "        'OPTIONS': {\n"
+            f"            'transaction_mode': '{EXTRA_SQLITE_PARAMS['transaction_mode']}',\n"
+            '             \'init_command\': (\n'
+            f'{init_command_str}'
+            '              )\n'
+            "        }\n"
+            "    }\n"
+            "}\n"
+        ),
+        rtn_val,
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    return rtn_val
 
 
 def replace_settings_with_environs(content: str) -> str:
@@ -47,12 +91,11 @@ def replace_settings_with_environs(content: str) -> str:
 
 def create_dot_envfile(project_dir, context: dict[str, str]):
     env_file_path = project_dir / ".env"
-    env_content = (
-        "DEBUG=True\n"
-        f"SECRET_KEY=\"{context['secret_key']}\"\n"
-        f'ALLOWED_HOSTS=\n'
-        f"DATABASE_URL=sqlite:///{project_dir / 'db.sqlite3'}"
-    )
+    sqlite_url = f"sqlite:///{project_dir / 'db.sqlite3'}"
+    if Version(context["django_version"]) >= Version("5.1"):
+        sqlite_url += "?" + urllib.parse.urlencode(EXTRA_SQLITE_PARAMS)
+    env_content = f"DEBUG=True\nSECRET_KEY=\"{context['secret_key']}\"\nALLOWED_HOSTS=\nDATABASE_URL={sqlite_url}\n"
+
     with open(env_file_path, "w") as f:
         f.write(env_content)
 
@@ -68,6 +111,8 @@ def replace_variables(project_dir, context: dict[str, str], initialize_env):
         if str(file.relative_to(project_dir)) == "config/settings.py" and initialize_env is True:
             content = replace_settings_with_environs(content)
             create_dot_envfile(project_dir, context)
+        if str(file.relative_to(project_dir)) == "config/settings.py" and initialize_env is False:
+            content = replace_sqlite_config(content, context["django_version"])
         with file.open("w") as f:
             f.write(content)
 

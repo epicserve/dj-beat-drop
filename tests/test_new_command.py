@@ -3,11 +3,32 @@ import re
 import shutil
 import string
 from pathlib import Path
+from textwrap import dedent
 from unittest import TestCase
+
+from packaging.version import Version
 
 from dj_beat_drop.new import create_new_project
 
 ENV_SECRET_KEY_PATTERN = 'SECRET_KEY = env.str("SECRET_KEY")'  # noqa: S105
+SQLITE_OPTIONS_ENV = (
+    "?transaction_mode=IMMEDIATE"
+    "&init_command=PRAGMA+journal_mode+%3D+WAL"
+    "%3BPRAGMA+synchronous+%3D+NORMAL"
+    "%3BPRAGMA+mmap_size+%3D+134217728"
+    "%3BPRAGMA+journal_size_limit+%3D+27103364"
+    "%3BPRAGMA+cache_size+%3D+2000"
+)
+SQLITE_OPTIONS = dedent("""
+    'transaction_mode': 'IMMEDIATE',
+    'init_command': (
+        "PRAGMA journal_mode = WAL;"
+        "PRAGMA synchronous = NORMAL;"
+        "PRAGMA mmap_size = 134217728;"
+        "PRAGMA journal_size_limit = 27103364;"
+        "PRAGMA cache_size = 2000;"
+    )
+""")
 FILE_ASSERTIONS = {
     "manage.py": [
         "os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{{ project_name }}.settings')",
@@ -47,6 +68,8 @@ ENV_ASSERTIONS = {
         'SECRET_KEY="{{ secret_key }}"',
         "ALLOWED_HOSTS=",
         "DATABASE_URL=sqlite:///{{ project_dir }}/db.sqlite3",
+        # If Django version is 5.1 or higher, the following option should be present in the DATABASE_URL
+        ("5.1", SQLITE_OPTIONS_ENV),
     ],
     "config/settings.py": [
         "from environs import Env",
@@ -55,6 +78,10 @@ ENV_ASSERTIONS = {
         'ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")',
         'DATABASES = {"default": env.dj_db_url("DATABASE_URL")}',
     ],
+}
+NO_ENV_ASSERTIONS = {
+    # If Django version is 5.1 or higher, the following option should be present in the DATABASE_URL
+    "config/settings.py": [("5.1", option) for option in SQLITE_OPTIONS.splitlines()],
 }
 
 
@@ -112,20 +139,27 @@ class TestNewCommand(TestCase):
                     assertions.extend(uv_assertions)
                 if initialize_env is True:
                     assertions.extend(env_assertions)
+                else:
+                    assertions.extend(NO_ENV_ASSERTIONS.get(relative_path, []))
                 with open(file) as f:
                     content = f.read()
                 for assertion_pattern in assertions:
+                    version_str = None
+                    if isinstance(assertion_pattern, list | tuple) is True:
+                        version_str, assertion_pattern = assertion_pattern
+                    if version_str and Version(template_context["django_version"]) < Version(version_str):
+                        continue
                     if (
                         assertion_pattern.startswith("SECRET_KEY =")
                         and initialize_env is True
                         and relative_path == "config/settings.py"
                     ):
                         assertion_pattern = ENV_SECRET_KEY_PATTERN
-                    if re.match(r".*{{\s[_a-z]+\s}}.*", assertion_pattern) is None:
-                        assertion = assertion_pattern
-                    else:
+                    if re.match(r".*{{\s[_a-z]+\s}}.*", assertion_pattern):
                         formatted_assertion = assertion_pattern.replace("{{ ", "{").replace(" }}", "}")
                         assertion = formatted_assertion.format_map(SafeDict(assertion_context))
+                    else:
+                        assertion = assertion_pattern
                     assert assertion in content, f"Assertion failed for {relative_path}: {assertion}"
 
     def test_new_command_with_defaults(self):
