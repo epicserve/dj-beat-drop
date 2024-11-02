@@ -2,8 +2,10 @@ import os
 import re
 import shutil
 from pathlib import Path
+from textwrap import dedent
 
 from InquirerPy import inquirer
+from packaging.version import Version
 
 from dj_beat_drop import utils
 from dj_beat_drop.utils import color
@@ -16,6 +18,35 @@ def rename_template_files(project_dir):
             continue
         if file.name.endswith(".py-tpl"):
             os.rename(file, file.with_name(file.name[:-4]))
+
+
+def replace_sqlite_config(content: str, django_version: str) -> str:
+    if Version(django_version) < Version("5.1"):
+        return content
+
+    rtn_val = content
+    rtn_val = re.sub(
+        r"^DATABASES\s*=\s*\{.+?\}\n\}",
+        dedent(r'''DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+                'OPTIONS': {
+                    'transaction_mode': 'IMMEDIATE',
+                    'init_command': """
+                        PRAGMA journal_mode=WAL;
+                        PRAGMA synchronous=NORMAL;
+                        PRAGMA mmap_size = 134217728;
+                        PRAGMA journal_size_limit = 27103364;
+                        PRAGMA cache_size=2000;
+                    """,
+                },
+            }
+        }'''),
+        rtn_val,
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    return rtn_val
 
 
 def replace_settings_with_environs(content: str) -> str:
@@ -53,6 +84,16 @@ def create_dot_envfile(project_dir, context: dict[str, str]):
         f'ALLOWED_HOSTS=\n'
         f"DATABASE_URL=sqlite:///{project_dir / 'db.sqlite3'}"
     )
+    if Version(context["django_version"]) >= Version("5.1"):
+        env_content += (
+            "?transaction_mode=immediate"
+            "&init_command=PRAGMA journal_mode=WAL"
+            ";PRAGMA synchronous=NORMAL"
+            ";PRAGMA mmap_size=134217728"
+            ";PRAGMA journal_size_limit=27103364"
+            ";PRAGMA cache_size=2000"
+        )
+
     with open(env_file_path, "w") as f:
         f.write(env_content)
 
@@ -68,6 +109,8 @@ def replace_variables(project_dir, context: dict[str, str], initialize_env):
         if str(file.relative_to(project_dir)) == "config/settings.py" and initialize_env is True:
             content = replace_settings_with_environs(content)
             create_dot_envfile(project_dir, context)
+        if str(file.relative_to(project_dir)) == "config/settings.py" and initialize_env is False:
+            content = replace_sqlite_config(content, context["django_version"])
         with file.open("w") as f:
             f.write(content)
 
