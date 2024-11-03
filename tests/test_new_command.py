@@ -141,8 +141,7 @@ class TestNewCommand(TestCase):
                     assertions.extend(env_assertions)
                 else:
                     assertions.extend(NO_ENV_ASSERTIONS.get(relative_path, []))
-                with open(file) as f:
-                    content = f.read()
+                content = file.read_text()
                 for assertion_pattern in assertions:
                     version_str = None
                     if isinstance(assertion_pattern, list | tuple) is True:

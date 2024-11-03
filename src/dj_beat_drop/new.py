@@ -96,16 +96,14 @@ def create_dot_envfile(project_dir, context: dict[str, str]):
         sqlite_url += "?" + urllib.parse.urlencode(EXTRA_SQLITE_PARAMS)
     env_content = f"DEBUG=True\nSECRET_KEY=\"{context['secret_key']}\"\nALLOWED_HOSTS=\nDATABASE_URL={sqlite_url}\n"
 
-    with open(env_file_path, "w") as f:
-        f.write(env_content)
+    env_file_path.write_text(env_content)
 
 
 def replace_variables(project_dir, context: dict[str, str], initialize_env):
     for file in project_dir.rglob("*"):
         if file.is_file() is False:
             continue
-        with file.open() as f:
-            content = f.read()
+        content = file.read_text()
         for variable, value in context.items():
             content = content.replace(f"{{{{ {variable} }}}}", value)
         if str(file.relative_to(project_dir)) == "config/settings.py" and initialize_env is True:
@@ -113,8 +111,7 @@ def replace_variables(project_dir, context: dict[str, str], initialize_env):
             create_dot_envfile(project_dir, context)
         if str(file.relative_to(project_dir)) == "config/settings.py" and initialize_env is False:
             content = replace_sqlite_config(content, context["django_version"])
-        with file.open("w") as f:
-            f.write(content)
+        file.write_text(content)
 
 
 def create_new_project(
