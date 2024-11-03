@@ -3,7 +3,6 @@ import re
 import shutil
 import urllib.parse
 from pathlib import Path
-from textwrap import dedent
 
 from InquirerPy import inquirer
 from packaging.version import Version
@@ -42,7 +41,7 @@ def replace_sqlite_config(content: str, django_version: str) -> str:
     rtn_val = content
     rtn_val = re.sub(
         r"^DATABASES\s*=\s*\{.+?\}\n\}",
-        dedent(
+        (
             "DATABASES = {\n"
             "    'default': {\n"
             "        'ENGINE': 'django.db.backends.sqlite3',\n"
