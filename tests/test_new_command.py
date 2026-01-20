@@ -1,6 +1,6 @@
+import platform
 import random
 import re
-import shutil
 import string
 from pathlib import Path
 from textwrap import dedent
@@ -9,6 +9,7 @@ from unittest import TestCase
 from packaging.version import Version
 
 from dj_beat_drop.new import create_new_project
+from dj_beat_drop.utils import remove_directory
 
 ENV_SECRET_KEY_PATTERN = 'SECRET_KEY = env.str("SECRET_KEY")'  # noqa: S105
 SQLITE_OPTIONS_ENV = (
@@ -109,11 +110,11 @@ class TestNewCommand(TestCase):
             "initialize_env": True,
         }
         if self.project_dir.exists():
-            shutil.rmtree(self.project_dir)
+            remove_directory(self.project_dir)
 
     def tearDown(self):
-        if self.project_dir.exists():
-            shutil.rmtree(self.project_dir)
+        if self.project_dir.exists() and platform.system() != "Windows":
+            remove_directory(self.project_dir)
 
     @staticmethod
     def assert_files_are_correct(

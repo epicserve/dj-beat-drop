@@ -8,7 +8,7 @@ from InquirerPy import inquirer
 from packaging.version import Version
 
 from dj_beat_drop import utils
-from dj_beat_drop.utils import color
+from dj_beat_drop.utils import color, remove_directory
 
 EXTRA_SQLITE_PARAMS = {
     "transaction_mode": "IMMEDIATE",
@@ -133,7 +133,7 @@ def create_new_project(
         os.chdir(project_dir)
         os.system("uv init")  # noqa: S605, S607
         os.system("rm hello.py")  # noqa: S605, S607
-        os.system(f"uv add django~='{minor_version}'")  # noqa: S605
+        os.system(f'uv add "django~={minor_version}"')  # noqa: S605
         if initialize_env is True:
             os.system("uv add environs[django]")  # noqa: S605, S607
         os.system("uv run manage.py migrate")  # noqa: S605, S607
@@ -166,7 +166,7 @@ def handle_new(name: str, use_lts: bool, overwrite_target_dir: bool) -> None:
             if overwrite_response is False:
                 color.red("Operation cancelled.")
                 return
-        shutil.rmtree(project_dir)
+        remove_directory(project_dir)
 
     initialize_uv = inquirer.confirm(message="Initialize your project with UV?", default=True).execute()
     initialize_env = inquirer.confirm(
